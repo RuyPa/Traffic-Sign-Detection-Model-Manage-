@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Sample List</h1>
+
+        <!-- Thêm ô nhập từ khóa tìm kiếm và nút tìm kiếm -->
+        <div class="input-group mb-3">
+            <input type="text" id="searchKeyword" class="form-control" placeholder="Enter keyword">
+            <div class="input-group-append">
+                <button id="searchButton" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+
+        <button id="selectAllButton" class="btn btn-primary mt-3">Select All</button>
+
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Path</th>
+                    <th>Select</th>
+                    <th>Image</th>
+                    
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Thêm div hiển thị thông báo "Success" -->
+        <div id="successMessage" class="alert alert-success mt-3" style="display: none;">
+            Success!
+        </div>
+
+        <!-- Bảng dưới cùng để hiển thị chi tiết khi một hàng được chọn -->
+        <table class="table mt-4" id="detailTable" style="display: none;">
+            <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Path</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="detailTableBody"></tbody>
+        </table>
+        <!-- Điều kiện để kiểm tra có selectedSamples hay không -->
+        <button id="trainNewModelButton" class="btn btn-success mt-3" style="display: none;">Train New Model</button>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        const selectedSamples = [];
+
+        window.addEventListener("load", function() {
+            // Fetch data from the API and display it when the page loads
+            fetchDataAll();
+        });
+
+        document.getElementById("searchButton").addEventListener("click", function() {
+            const searchKeyword = document.getElementById("searchKeyword").value;
+            fetchData(searchKeyword);
+        });
+
+        function fetchDataAll() {
+            fetch("http://localhost:5000/api/v3/sample/all")
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.querySelector('tbody');
+                    table.innerHTML = '';
+
+                    data.forEach(sample => {
+                        const row = table.insertRow();
+                        row.insertCell(0).textContent = sample.id;
+                        row.insertCell(1).textContent = sample.name;
+                        row.insertCell(2).textContent = sample.code;
+                        row.insertCell(3).textContent = sample.path;
+
+                        const selectCell = row.insertCell(4);
+
+                        const isSampleSelected = selectedSamples.some(selectedSample => selectedSample.id === sample.id);
+
+                        if (isSampleSelected) {
+                            // If the sample is already selected, disable the Select button
+                            selectCell.textContent = "Selected";
+                        } else {
+                            // If the sample is not selected, add the Select button
+                            const selectButton = document.createElement('button');
+                            selectButton.textContent = 'Select';
+                            selectButton.classList.add('btn', 'btn-primary');
+                            selectButton.addEventListener('click', () => {
+                                selectSample(sample, row);
+                            });
+
+                            selectCell.appendChild(selectButton);
+                        }
+
+                        // const image = document.createElement('img');
+                        // image.src = `http://localhost:5001/images/${sample.name}`;
+                        // image.alt = 'Sample Image';
+                        // imageCell.appendChild(image);
+                        const imageCell = row.insertCell(5);
+                        const image = document.createElement('img');
+                        image.src = `http://localhost:5000/images/${sample.name}`;
+                        image.alt = 'Sample Image';
+                        image.style.width = '50px'; // Set the width as needed
+                        image.style.height = '50px'; // Set the height as needed
+                        imageCell.appendChild(image);
+                        imageCell.style.position = 'relative';
+
+                        const predictionInfo = sample.label[0];
+                        const height = predictionInfo[1] * 50; // Assuming 50 is the scale factor, adjust as needed
+                        const width = predictionInfo[3] * 50;
+                        const centerX = predictionInfo[4] * 50;
+                        const centerY = predictionInfo[5] * 50;
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 50; // Set the canvas width as needed
+                        canvas.height = 50; // Set the canvas height as needed
+                        canvas.style.position = 'absolute';
+                        canvas.style.left = centerX - 13 + 'px'; // Đặt vị trí theo tọa độ x
+                        canvas.style.top = centerY -14 + 'px'; 
+                        imageCell.appendChild(canvas);
+                        const context = canvas.getContext('2d');
+                        context.strokeStyle = 'red';
+                        context.lineWidth = 2;
+
+                        // Position the rectangle relative to the image element
+                        context.strokeRect(centerX - width / 2, centerY - height / 2, width, height);
+
+                        
+                    });
+
+                    // Kiểm tra và cập nhật hiển thị của nút "Train New Model"
+                    updateTrainButtonVisibility();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function fetchData(searchKeyword) {
+            fetch(`http://localhost:5000/api/v3/sample/search?name=${searchKeyword}`)
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.querySelector('tbody');
+                    table.innerHTML = '';
+
+                    data.forEach(sample => {
+                        const row = table.insertRow();
+                        row.insertCell(0).textContent = sample.id;
+                        row.insertCell(1).textContent = sample.name;
+                        row.insertCell(2).textContent = sample.code;
+                        row.insertCell(3).textContent = sample.path;
+
+                        const selectCell = row.insertCell(4);
+
+                        const isSampleSelected = selectedSamples.some(selectedSample => selectedSample.id === sample.id);
+
+                        if (isSampleSelected) {
+                            // If the sample is already selected, disable the Select button
+                            selectCell.textContent = "Selected";
+                        } else {
+                            // If the sample is not selected, add the Select button
+                            const selectButton = document.createElement('button');
+                            selectButton.textContent = 'Select';
+                            selectButton.classList.add('btn', 'btn-primary');
+                            selectButton.addEventListener('click', () => {
+                                selectSample(sample, row);
+                            });
+
+                            selectCell.appendChild(selectButton);
+                        }
+                    });
+
+                    // Kiểm tra và cập nhật hiển thị của nút "Train New Model"
+                    updateTrainButtonVisibility();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        document.getElementById("trainNewModelButton").addEventListener("click", function () {
+            const selectedIds = selectedSamples.map(sample => sample.id);
+
+            fetch('http://localhost:5000/api/v3/model/train-new-model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids: selectedIds.join(',') }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Kiểm tra data nếu cần
+                window.location.href = 'ManageModelView.html';
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+
+        // Function to handle selecting a sample
+        function selectSample(sample, row) {
+            // Check if the sample is already selected
+            const isSampleSelected = selectedSamples.some(selectedSample => selectedSample.id === sample.id);
+
+            if (!isSampleSelected) {
+                // Add the selected sample to the array
+                selectedSamples.push(sample);
+
+                // Update the lower table to display all selected samples
+                updateDetailTable();
+
+                // Disable the Select button in the main table
+                const selectCell = row.cells[4];
+                selectCell.textContent = "Selected";
+            }
+
+            // Kiểm tra và cập nhật hiển thị của nút "Train New Model"
+            updateTrainButtonVisibility();
+        }
+
+        // Function to handle deleting a selected sample
+        function deleteSample(index) {
+            // Get the ID of the sample to be deleted
+            const deletedSampleId = selectedSamples[index].id;
+
+            // Remove the selected sample from the array
+            selectedSamples.splice(index, 1);
+
+            // Update the lower table to display the updated list of selected samples
+            updateDetailTable();
+
+            // Reattach event listeners for the "Select" buttons in the main table
+            attachSelectEventListeners();
+
+            // Enable the Select button in the main table for the deleted sample
+            enableSelectButton(deletedSampleId);
+
+            // Kiểm tra và cập nhật hiển thị của nút "Train New Model"
+            updateTrainButtonVisibility();
+        }
+
+        // Function to update the lower table with the selected samples
+        function updateDetailTable() {
+            const detailTableBody = document.getElementById('detailTableBody');
+            detailTableBody.innerHTML = '';
+
+            selectedSamples.forEach((selectedSample, newIndex) => {
+                const detailRow = detailTableBody.insertRow();
+                detailRow.insertCell(0).textContent = selectedSample.id;
+                detailRow.insertCell(1).textContent = selectedSample.name;
+                detailRow.insertCell(2).textContent = selectedSample.code;
+                detailRow.insertCell(3).textContent = selectedSample.path;
+
+                const deleteCell = detailRow.insertCell(4);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('btn', 'btn-danger');
+                deleteButton.addEventListener('click', () => {
+                    deleteSample(newIndex);
+                });
+                deleteCell.appendChild(deleteButton);
+            });
+
+            // Display the lower table
+            const detailTable = document.getElementById('detailTable');
+            detailTable.style.display = 'table';
+        }
+
+        // Function to enable the Select button in the main table for a deleted sample
+        function enableSelectButton(deletedSampleId) {
+            const mainTableRows = document.querySelectorAll('tbody tr');
+            mainTableRows.forEach(row => {
+                const idCell = row.cells[0];
+                if (idCell.textContent === deletedSampleId.toString()) {
+                    const selectCell = row.cells[4];
+                    selectCell.innerHTML = '';
+
+                    const selectButton = document.createElement('button');
+                    selectButton.textContent = 'Select';
+                    selectButton.classList.add('btn', 'btn-primary');
+                    selectButton.addEventListener('click', () => {
+                        selectSample(selectedSamples.find(sample => sample.id === deletedSampleId), row);
+                    });
+
+                    selectCell.appendChild(selectButton);
+                }
+            });
+        }
+
+        // Function to attach event listeners for the "Select" buttons in the main table
+        function attachSelectEventListeners() {
+            const selectButtons = document.querySelectorAll('tbody tr td:nth-child(5) button');
+            selectButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const row = button.closest('tr');
+                    if (row) {
+                        const idCell = row.cells[0];
+                        if (idCell && idCell.textContent) {
+                            const selectedSample = selectedSamples.find(sample => sample.id === parseInt(idCell.textContent));
+                            if (selectedSample) {
+                                selectSample(selectedSample, row);
+                            } else {
+                                console.error('Selected sample not found.');
+                            }
+                        } else {
+                            console.error('ID cell or content is undefined or null.');
+                        }
+                    } else {
+                        console.error('Row is undefined or null.');
+                    }
+                });
+            });
+        }
+
+        // Function to update the visibility of the "Train New Model" button
+        function updateTrainButtonVisibility() {
+            const trainButton = document.getElementById('trainNewModelButton');
+            trainButton.style.display = selectedSamples.length > 0 ? 'block' : 'none';
+        }
+
+
+
+        document.getElementById("selectAllButton").addEventListener("click", function() {
+        // Gọi hàm để chọn tất cả các mẫu
+        selectAllSamples();
+    });
+
+    // Hàm để chọn tất cả các mẫu
+    function selectAllSamples() {
+        // Lấy tất cả các hàng trong bảng chính
+        const mainTableRows = document.querySelectorAll('tbody tr');
+
+        // Lặp qua từng hàng và chọn mẫu nếu chưa được chọn
+        mainTableRows.forEach(row => {
+            const idCell = row.cells[0];
+            if (idCell && idCell.textContent) {
+                const sample = {
+                    id: parseInt(idCell.textContent),
+                    name: row.cells[1].textContent,
+                    code: row.cells[2].textContent,
+                    path: row.cells[3].textContent
+                };
+
+                // Kiểm tra xem mẫu đã được chọn chưa
+                const isSampleSelected = selectedSamples.some(selectedSample => selectedSample.id === sample.id);
+
+                if (!isSampleSelected) {
+                    // Thêm mẫu vào danh sách chọn
+                    selectedSamples.push(sample);
+
+                    // Cập nhật bảng chi tiết
+                    updateDetailTable();
+
+                    // Hiển thị "Selected" trên nút Select trong bảng chính
+                    const selectCell = row.cells[4];
+                    selectCell.textContent = "Selected";
+                }
+            }
+        });
+
+        // Cập nhật hiển thị của nút "Train New Model"
+        updateTrainButtonVisibility();
+    }
+    </script>
+</body>
+</html>

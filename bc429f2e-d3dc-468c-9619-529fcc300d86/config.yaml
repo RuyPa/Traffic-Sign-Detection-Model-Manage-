@@ -1,0 +1,5 @@
+names:
+  0: traffic_sign
+path: D:\test flask cors\bc429f2e-d3dc-468c-9619-529fcc300d86
+train: images\train
+val: images\train

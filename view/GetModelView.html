@@ -1,0 +1,202 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Model List</h1>
+
+         
+        <div class="input-group mb-3">
+            <input type="text" id="searchKeyword" class="form-control" placeholder="Enter keyword">
+            <div class="input-group-append">
+                <button id="searchButton" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Accuracy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1 Score</th>
+                    <th>Path</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> -->
+
+    <!-- <script>
+        document.getElementById("searchButton").addEventListener("click", function() {
+            const searchKeyword = document.getElementById("searchKeyword").value;
+            fetchData(searchKeyword);
+        });
+
+        // Function to fetch data from the API and populate the table based on the search keyword
+        function fetchData(searchKeyword) {
+            fetch(`http://localhost:5000/api/v2/model/search?name=${searchKeyword}`)
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.querySelector('tbody');
+
+                    // Clear the table before populating with new data
+                    table.innerHTML = '';
+
+                    data.forEach(model => {
+                        const row = table.insertRow();
+                        row.insertCell(0).textContent = model.id;
+                        row.insertCell(1).textContent = model.name;
+                        row.insertCell(2).textContent = model.acc;
+                        row.insertCell(3).textContent = model.pre;
+                        row.insertCell(4).textContent = model.recall;
+                        row.insertCell(5).textContent = model.f1;
+                        row.insertCell(6).textContent = model.path;
+
+                        // Create "Retrain" and "Delete" links
+                        const actionsCell = row.insertCell(7);
+
+                        // Create the "Retrain" link and add a click event listener to call the Retrain API
+                        const retrainLink = document.createElement('a');
+                        retrainLink.textContent = 'Retrain';
+                        retrainLink.href = '#'; // Use '#' as a placeholder href
+                        retrainLink.addEventListener('click', function(event) {
+                            event.preventDefault(); // Prevent the default behavior of the link
+                            callRetrainAPI(model.id); // Call the Retrain API function
+                        });
+                        actionsCell.appendChild(retrainLink);
+
+                        const deleteLink = document.createElement('a');
+                        deleteLink.textContent = 'Delete';
+                        deleteLink.href = 'DeleteModelView.html?id=' + model.id; // Pass the model ID to the delete page
+                        actionsCell.appendChild(deleteLink);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function callRetrainAPI(modelId) {
+            fetch(`http://localhost:5000/api/v2/model/retrain/${modelId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message); // Display the message in the console
+
+                    // Check if the message is 'number of samples is less than permission'
+                    if (data.message === 'number of samples is less than permission') {
+                        // Display the message in the browser
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = 'Number of samples is less than permission';
+                        messageDiv.className = 'alert alert-danger';
+                        document.body.appendChild(messageDiv);
+                    }
+                    if (data.message === 'retraining') {
+                        // Display the message in the browser
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = 'retraining';
+                        messageDiv.className = 'alert alert-success';
+                        document.body.appendChild(messageDiv);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+}
+    </script>
+</body>
+</html>
+
+ -->
+
+
+ <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Model List</h1>
+
+        <!-- Thêm ô nhập từ khóa tìm kiếm và nút tìm kiếm -->
+        <div class="input-group mb-3">
+            <input type="text" id="searchKeyword" class="form-control" placeholder="Enter keyword">
+            <div class="input-group-append">
+                <button id="searchButton" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Accuracy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1 Score</th>
+                    <th>Path</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById("searchButton").addEventListener("click", function() {
+            const searchKeyword = document.getElementById("searchKeyword").value;
+            fetchData(searchKeyword);
+        });
+
+        function fetchData(searchKeyword) {
+            fetch(`http://localhost:5000/api/v2/model/search?name=${searchKeyword}`)
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.querySelector('tbody');
+                    table.innerHTML = '';
+
+                    data.forEach(model => {
+                        const row = table.insertRow();
+                        row.insertCell(0).textContent = model.id;
+                        row.insertCell(1).textContent = model.name;
+                        row.insertCell(2).textContent = model.acc;
+                        row.insertCell(3).textContent = model.pre;
+                        row.insertCell(4).textContent = model.recall;
+                        row.insertCell(5).textContent = model.f1;
+                        row.insertCell(6).textContent = model.path;
+
+                        const actionsCell = row.insertCell(7);
+
+                        const retrainLink = document.createElement('a');
+                        retrainLink.textContent = 'Retrain';
+                        retrainLink.href = `RetrainView.html?id=${model.id}`; // Chuyển hướng với tham số id
+                        actionsCell.appendChild(retrainLink);
+
+                        const deleteLink = document.createElement('a');
+                        deleteLink.textContent = 'Delete';
+                        deleteLink.href = `DeleteModelView.html?id=${model.id}`;
+                        actionsCell.appendChild(deleteLink);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Model List</h1>
+
+        <div class="input-group mb-3">
+            <input type="text" id="searchKeyword" class="form-control" placeholder="Enter keyword">
+            <div class="input-group-append">
+                <button id="searchButton" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Accuracy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1 Score</th>
+                    <th>Path</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div id="successMessage" class="alert alert-success mt-3" style="display: none;">
+            Success!
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById("searchButton").addEventListener("click", function() {
+            const searchKeyword = document.getElementById("searchKeyword").value;
+            fetchData(searchKeyword);
+        });
+
+        // Kiểm tra xem có thông báo "Success" được lưu trong sessionStorage không
+        if (sessionStorage.getItem('showSuccessMessage') === 'true') {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+
+            // Ẩn thông báo sau khoảng 1 giây và làm mới trang
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+                sessionStorage.removeItem('showSuccessMessage');
+                fetchData();
+            }, 1000);
+        }
+
+        function fetchData(searchKeyword) {
+            // Ẩn thông báo "Success"
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'none';
+
+            fetch(`http://localhost:5000/api/v2/model/search?name=${searchKeyword}`)
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.querySelector('tbody');
+                    table.innerHTML = '';
+
+                    data.forEach(model => {
+                        const row = table.insertRow();
+                        row.insertCell(0).textContent = model.id;
+                        row.insertCell(1).textContent = model.name;
+                        row.insertCell(2).textContent = model.acc;
+                        row.insertCell(3).textContent = model.pre;
+                        row.insertCell(4).textContent = model.recall;
+                        row.insertCell(5).textContent = model.f1;
+                        row.insertCell(6).textContent = model.path;
+
+                        const actionsCell = row.insertCell(7);
+
+                        if (model.status === 'active') {
+                            row.classList.add('table-danger');
+                            actionsCell.textContent = 'Active';
+                        } else {
+                            const setActiveButton = document.createElement('button');
+                            setActiveButton.textContent = 'Set Active';
+                            setActiveButton.classList.add('btn', 'btn-success');
+                            setActiveButton.addEventListener('click', () => {
+                                setActiveModel(model.id);
+                            });
+                            actionsCell.appendChild(setActiveButton);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function setActiveModel(modelId) {
+            fetch(`http://localhost:5000/api/v2/set-active-model/${modelId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.style.display = 'block';
+
+                    // Lưu thông báo "Success" trong sessionStorage
+                    sessionStorage.setItem('showSuccessMessage', 'true');
+
+                    // Ẩn thông báo sau khoảng 1 giây và làm mới trang
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                        sessionStorage.removeItem('showSuccessMessage');
+                        fetchData();
+                    }, 1000);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload ảnh và in tên vào console</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload ảnh và in tên vào console</h1>
+
+    <input type="file" id="imageInput" accept="image/*">
+    <br><br>
+    <img src="" alt="Ảnh đã chọn" id="selectedImage" style="max-width: 300px;">
+
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function (event) {
+            var input = event.target;
+            var image = document.getElementById('selectedImage');
+
+            var reader = new FileReader();
+
+            reader.onload = function () {
+                image.src = reader.result;
+                var imageName = input.files[0].name;
+                console.log('Tên ảnh: ' + imageName);
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        });
+    </script>
+</body>
+</html>

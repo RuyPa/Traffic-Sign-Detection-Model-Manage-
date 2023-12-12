@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Model</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <!-- <div class="container mt-5">
+        <h1>Manage Model</h1>
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <button class="btn btn-primary btn-block" href="TrainNewModel.html">
+                    <a href="TrainNewModel.html" style="color: white;">
+                        Train New Model
+                    </a>
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-warning btn-block" href="GetModelView.html" id="retrainModelBtn">
+                    <a href="GetModelView.html">
+                        Retrain Model
+                    </a>
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success btn-block" href="GetModelView.html" id="dowloadBtn">Get Current Model</button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-danger btn-block" id="deleteModelBtn">
+                    <a href="GetModelView.html">
+                        Delete Model
+                    </a>
+                </button>
+            </div>
+        </div>
+    </div> -->
+    <div class="container mt-5">
+        <h1>Manage Model</h1>
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <button class="btn btn-primary btn-block" id="trainNewModelBtn">
+                    <a href="#" style="color: white;">Train New Model</a>
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-warning btn-block" id="retrainModelBtn">
+                    <a href="#" style="color: white;">Retrain Model</a>
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success btn-block" id="dowloadBtn" style="color: white;">
+                    Get Current Model
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary btn-block">
+                    <a href="SetActiveModelView.html" style="color: white;">Set Active Model</a>
+                </button>
+            </div>
+            <div class="center"></div>
+            <div class="col-md-3 mt-1"> 
+                <button class="btn btn-danger btn-block">
+                    <a href="GetModelView.html" style="color: white;">Delete Model</a>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+
+
+        document.getElementById('trainNewModelBtn').addEventListener('click', function() {
+            // Gọi API http://localhost:5000/api/v3/stt
+            fetch('http://localhost:5000/api/v3/stt')
+                .then(response => response.json())
+                .then(data => {
+                    // Kiểm tra giá trị message từ API
+                    if (data.message === 1) {
+                        // Nếu message là 1, hiển thị thông báo và giữ nguyên view
+                        alert('Training a model is in progress, wait for a while.');
+                    } else {
+                        // Nếu message không phải là 1, chuyển hướng đến view tiếp theo
+                        window.location.href = 'TrainNewModel.html';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+
+        document.getElementById('retrainModelBtn').addEventListener('click', function() {
+            // Gọi API http://localhost:5000/api/v3/stt
+            fetch('http://localhost:5000/api/v3/stt')
+                .then(response => response.json())
+                .then(data => {
+                    // Kiểm tra giá trị message từ API
+                    if (data.message === 1) {
+                        // Nếu message là 1, hiển thị thông báo và giữ nguyên view
+                        alert('Training a model is in progress, wait for a while.');
+                    } else {
+                        // Nếu message không phải là 1, chuyển hướng đến view tiếp theo
+                        window.location.href = 'GetModelView.html';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('dowloadBtn').addEventListener('click', function() {
+            fetch('http://localhost:5000/api/v2/model/get-current')
+                .then(response => {
+                    if (response.ok) {
+                        return response.blob();
+                    } else {
+                        console.error('Download request failed.');
+                    }
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'best.pt';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+        });
+    </script>
+</body>
+</html>
